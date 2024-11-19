@@ -23,7 +23,7 @@ function Home({ redirection }) {
 
         setProvider(newProvider);
         setSigner(newSigner);
-        setConnectedAccount(account); // Track the connected account
+        setConnectedAccount(account);
       } catch (error) {
         console.error("User rejected connection", error);
       }
@@ -39,14 +39,11 @@ function Home({ redirection }) {
 
   return (
     <div>
-      {!connectedAccount ? (
         <button onClick={connect}>Connect to MetaMask</button>
-      ) : (
-        <>
+        <br/>
           <p>Connected account: {connectedAccount}</p>
           <button onClick={disconnect}>Disconnect from MetaMask</button>
         </>
-      )}
     </div>
   );
 }
