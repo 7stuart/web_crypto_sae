@@ -1,38 +1,19 @@
 
 import './App.css';
-import { ethers } from "ethers";
+
 import Navbar from './functions/navbar';
+import { useState } from 'react';
+import Home from './pages/home';
+import Lottery from './pages/lottery';
+
 function App() {
-  const connect = async () => {
-    let signer = null;
-    let provider;
-
-    if (!window.ethereum) {
-      console.log("MetaMask not installed; using read-only defaults");
-      provider = ethers.getDefaultProvider();
-    } else {
-      console.log("MetaMask detected");
-      provider = new ethers.BrowserProvider(window.ethereum);
-
-      try {
-        // Request account access
-        await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
-        console.log("Connected with signer:", signer);
-      } catch (error) {
-        console.error("User rejected connection", error);
-      }
-    }
-  };
+  const [redirection, setRedirection] = useState(1)
 
   return (
     <div className="App">
-      <header className="App-header">
-        <Navbar />
-        
-        <button onClick={connect}>Connect to MetaMask</button>
-      
-      </header>
+      {/* Render Interface component if redirection state is 1 */}
+      {redirection === 1 && (<Home redirection={setRedirection} />)}
+      {redirection === 2 && (<Lottery redirection={setRedirection} />)}
     </div>
   );
 }
