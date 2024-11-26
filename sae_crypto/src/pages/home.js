@@ -36,7 +36,8 @@ const Home = () => {
         const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
         setContract(tempContract);
 
-        await loadContractData(tempContract);
+        // Recharger la page après la connexion
+        window.location.reload();
       } catch (error) {
         console.error("Erreur lors de la connexion à MetaMask :", error);
       }
@@ -77,6 +78,7 @@ const Home = () => {
       });
       await tx.wait();
       alert("Participation réussie !");
+      // Rafraîchir les données après la participation
       await loadContractData(contract);
     } catch (error) {
       console.error("Erreur lors de la participation :", error);
@@ -86,8 +88,8 @@ const Home = () => {
 
   // Vérifier si un compte est déjà connecté au moment du montage du composant
   useEffect(() => {
-    const checkConnection = async () => {
-      if (typeof window.ethereum !== "undefined") {
+    if (typeof window.ethereum !== "undefined") {
+      const checkConnection = async () => {
         const accounts = await window.ethereum.request({ method: "eth_accounts" });
         if (accounts.length > 0) {
           setAccount(accounts[0]);
@@ -98,29 +100,12 @@ const Home = () => {
           const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
           setContract(tempContract);
 
+          // Charger les données du contrat après la connexion
           await loadContractData(tempContract);
         }
-      }
-    };
-    checkConnection();
-
-    // Écouter les changements de compte ou de réseau dans MetaMask
-    window.ethereum.on("accountsChanged", (accounts) => {
-      setAccount(accounts[0] || null);
-    });
-
-    window.ethereum.on("chainChanged", () => {
-      // Vous pouvez recharger les données si nécessaire lorsque le réseau change
-      window.location.reload(); // Recharger la page si le réseau change
-    });
-
-    // Nettoyer les écouteurs d'événements à la fin
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener("accountsChanged", () => {});
-        window.ethereum.removeListener("chainChanged", () => {});
-      }
-    };
+      };
+      checkConnection();
+    }
   }, []);
 
   return (
@@ -170,7 +155,7 @@ const Home = () => {
               </button>
             </div>
           ) : (
-            <p>Connectez-vous pour participer à la loterie !</p>
+            <p>Connectez vous pour particper à la loterie</p>
           )}
         </div>
       </div>
