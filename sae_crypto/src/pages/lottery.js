@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import Web3 from "web3";
+import { ethers } from "ethers";
 import "bootstrap/dist/css/bootstrap.min.css";
 import contractABI from "../LotteryABI.json";
 
 const Lottery = ({ connectedAccount }) => {
+  const [account, setAccount] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [contract, setContract] = useState(null);
   const [owner, setOwner] = useState("");
   const [participants, setParticipants] = useState([]);
   const [winner, setWinner] = useState("");
@@ -81,6 +85,45 @@ const Lottery = ({ connectedAccount }) => {
       }
     }
   };
+
+  // Vérifier si un compte est déjà connecté au moment du montage du composant
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window.ethereum !== "undefined") {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          const tempProvider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await tempProvider.getSigner();
+          setProvider(tempProvider);
+
+          const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
+          setContract(tempContract);
+
+
+        }
+      }
+    };
+    checkConnection();
+
+    // Écouter les changements de compte ou de réseau dans MetaMask
+    window.ethereum.on("accountsChanged", (accounts) => {
+      setAccount(accounts[0] || null);
+    });
+
+    window.ethereum.on("chainChanged", () => {
+      // Vous pouvez recharger les données si nécessaire lorsque le réseau change
+      window.location.reload(); // Recharger la page si le réseau change
+    });
+
+    // Nettoyer les écouteurs d'événements à la fin
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("accountsChanged", () => {});
+        window.ethereum.removeListener("chainChanged", () => {});
+      }
+    };
+  }, []);
 
   if (!metaMaskConnected) {
     return (

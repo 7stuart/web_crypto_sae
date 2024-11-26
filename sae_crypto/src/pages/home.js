@@ -1,35 +1,73 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const Home = ({ connectedAccount, contract }) => {
+// ABI et adresse du contrat
+const contractABI = [
+  "function participate() external payable",
+  "function getParticipants() external view returns (address[])",
+  "function drawWinner() external",
+  "function getBalance() external view returns (uint256)",
+  "function ticketPrice() view returns (uint256)",
+  "function winner() view returns (address)",
+];
+const contractAddress = "0x8D45Dd70309B0D23E4fC1cB31ED2ee78Fbc2ef6f";
+
+const Home = () => {
+  const [account, setAccount] = useState(null);
+  const [provider, setProvider] = useState(null);
+  const [contract, setContract] = useState(null);
   const [ticketPrice, setTicketPrice] = useState(null);
   const [balance, setBalance] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [winner, setWinner] = useState(null);
 
-  const loadContractData = async () => {
-    try {
-      if (contract) {
-        const price = await contract.ticketPrice();
-        setTicketPrice(ethers.formatUnits(price, "ether"));
+  // Fonction pour se connecter à MetaMask
+  const connectWallet = async () => {
+    if (typeof window.ethereum !== "undefined") {
+      try {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        setAccount(accounts[0]);
 
-        const balance = await contract.getBalance();
-        setBalance(ethers.formatUnits(balance, "ether"));
+        const tempProvider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await tempProvider.getSigner();
+        setProvider(tempProvider);
 
-        const participants = await contract.getParticipants();
-        setParticipants(participants);
+        const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
+        setContract(tempContract);
 
-        const winner = await contract.winner();
-        setWinner(winner);
+        await loadContractData(tempContract);
+      } catch (error) {
+        console.error("Erreur lors de la connexion à MetaMask :", error);
       }
-    } catch (error) {
-      console.error("Error loading contract data:", error);
+    } else {
+      alert("MetaMask non détecté. Veuillez l'installer.");
     }
   };
 
+  // Charger les données du contrat
+  const loadContractData = async (tempContract) => {
+    try {
+      const price = await tempContract.ticketPrice();
+      setTicketPrice(ethers.formatUnits(price, "ether"));
+
+      const balance = await tempContract.getBalance();
+      setBalance(ethers.formatUnits(balance, "ether"));
+
+      const participants = await tempContract.getParticipants();
+      setParticipants(participants);
+
+      const winner = await tempContract.winner();
+      setWinner(winner);
+    } catch (error) {
+      console.error("Erreur lors du chargement des données du contrat :", error);
+    }
+  };
+
+  // Fonction pour participer à la loterie
   const participateLottery = async () => {
     if (!contract || !ticketPrice) {
-      alert("Contract not initialized or ticketPrice unavailable.");
+      alert("Contrat non initialisé ou ticketPrice indisponible.");
       return;
     }
 
@@ -38,48 +76,84 @@ const Home = ({ connectedAccount, contract }) => {
         value: ethers.parseUnits(ticketPrice, "ether"),
       });
       await tx.wait();
-      alert("Participation successful!");
-      await loadContractData();
+      alert("Participation réussie !");
+      await loadContractData(contract);
     } catch (error) {
-      console.error("Error during participation:", error);
-      alert(`Error during participation: ${error.message}`);
+      console.error("Erreur lors de la participation :", error);
+      alert(`Erreur lors de la participation : ${error.message}`);
     }
   };
 
+  // Vérifier si un compte est déjà connecté au moment du montage du composant
   useEffect(() => {
-    loadContractData();
-  }, [contract]);
+    const checkConnection = async () => {
+      if (typeof window.ethereum !== "undefined") {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+          const tempProvider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await tempProvider.getSigner();
+          setProvider(tempProvider);
+
+          const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
+          setContract(tempContract);
+
+          await loadContractData(tempContract);
+        }
+      }
+    };
+    checkConnection();
+
+    // Écouter les changements de compte ou de réseau dans MetaMask
+    window.ethereum.on("accountsChanged", (accounts) => {
+      setAccount(accounts[0] || null);
+    });
+
+    window.ethereum.on("chainChanged", () => {
+      // Vous pouvez recharger les données si nécessaire lorsque le réseau change
+      window.location.reload(); // Recharger la page si le réseau change
+    });
+
+    // Nettoyer les écouteurs d'événements à la fin
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("accountsChanged", () => {});
+        window.ethereum.removeListener("chainChanged", () => {});
+      }
+    };
+  }, []);
 
   return (
     <div className="container mt-5">
       <div className="card shadow-lg">
         <div className="card-body">
           <h1 className="card-title text-center text-primary mb-4">
-            Welcome to our decentralized lottery application
+            Bienvenue sur notre application de loterie décentralisée
           </h1>
           <p className="card-text">
-            This application was created to help our association generate revenue by organizing a
-            decentralized lottery. By purchasing tickets, you directly contribute to funding the
-            association's activities. Part of the proceeds are allocated to association projects, while
-            total transparency is ensured through blockchain technology.
+            Cette application a été créée pour aider notre association à générer des revenus en
+            organisant une loterie décentralisée. En achetant des billets, vous contribuez directement
+            au financement des activités de l'association. Une partie des recettes est allouée aux
+            projets associatifs, tandis que la transparence totale est assurée grâce à la technologie
+            blockchain.
           </p>
           <p>
-            To participate in the lottery, connect to MetaMask and buy a ticket for{" "}
-            <strong>0.0001 ETH</strong>. The draw is made automatically after each participation.
+            Pour participer à la loterie, connectez-vous à MetaMask et achetez un ticket au prix de{" "}
+            <strong>0.0001 ETH</strong>. Le tirage se fait automatiquement après chaque participation.
           </p>
-          {connectedAccount ? (
-            <div>
+          {account ? (
+            <div className="mt-4">
               <p>
-                <strong>Your connected MetaMask account:</strong> {connectedAccount}
+                <strong>Votre compte MetaMask connecté :</strong> {account}
               </p>
               <p>
-                <strong>Ticket price:</strong> 0.001 ETH
+                <strong>Prix du ticket :</strong> {ticketPrice || "Chargement..."} ETH
               </p>
               <p>
-                <strong>Contract balance:</strong> {balance || "Loading..."} ETH
+                <strong>Solde du contrat :</strong> {balance || "Chargement..."} ETH
               </p>
               <p>
-                <strong>Participants ({participants.length}):</strong>
+                <strong>Participants ({participants.length}) :</strong>
               </p>
               <ul className="list-group">
                 {participants.map((participant, index) => (
@@ -89,16 +163,14 @@ const Home = ({ connectedAccount, contract }) => {
                 ))}
               </ul>
               <p className="mt-3">
-                <strong>Current winner:</strong> {winner || "None at the moment"}
+                <strong>Gagnant actuel :</strong> {winner || "Aucun pour le moment"}
               </p>
               <button className="btn btn-primary mt-3" onClick={participateLottery}>
-                Participate in the lottery
+                Participer à la loterie
               </button>
             </div>
           ) : (
-            <p style={{ color: 'red' }}>
-              Please connect to MetaMask to participate in the lottery.
-            </p>
+            <p>Connectez-vous pour participer à la loterie !</p>
           )}
         </div>
       </div>
