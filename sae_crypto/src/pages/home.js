@@ -1,110 +1,109 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import contractABI from "../LotteryABI.json"; // Assurez-vous que l'ABI est correctement importée
-const contractAddress = "0x8D45Dd70309B0D23E4fC1cB31ED2ee78Fbc2ef6f"; // Remplace par l'adresse réelle du contrat
 
-function Home({ setConnectedAccount }) {
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
-  const [connectedAccount, setConnectedAccountLocal] = useState(null);
-  const [isParticipating, setIsParticipating] = useState(false);
-  const [error, setError] = useState("");
+const Home = ({ connectedAccount, contract }) => {
+  const [ticketPrice, setTicketPrice] = useState(null);
+  const [balance, setBalance] = useState("0");
+  const [participants, setParticipants] = useState([]);
+  const [winner, setWinner] = useState(null);
 
-  useEffect(() => {
-    if (window.ethereum) {
-      const checkConnection = async () => {
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
-          setConnectedAccountLocal(accounts[0]); // Si un compte est connecté
-        }
-      };
-      checkConnection();
-    }
-  }, []);
+  const loadContractData = async () => {
+    try {
+      if (contract) {
+        const price = await contract.ticketPrice();
+        setTicketPrice(ethers.formatUnits(price, "ether"));
 
-  // Fonction de connexion à MetaMask
-  const connect = async () => {
-    if (!window.ethereum) {
-      console.log("MetaMask not installed; using read-only defaults");
-      alert("Please install MetaMask to connect!");
-    } else {
-      console.log("MetaMask detected");
-      const newProvider = new ethers.BrowserProvider(window.ethereum);
+        const balance = await contract.getBalance();
+        setBalance(ethers.formatUnits(balance, "ether"));
 
-      try {
-        await newProvider.send("eth_requestAccounts", []);
-        const newSigner = await newProvider.getSigner();
-        const account = await newSigner.getAddress();
-        console.log("Connected with account:", account);
+        const participants = await contract.getParticipants();
+        setParticipants(participants);
 
-        setProvider(newProvider);
-        setSigner(newSigner);
-        setConnectedAccountLocal(account); // Save the connected account
-        setConnectedAccount(account); // Propagation à l'état global
-      } catch (error) {
-        console.error("User rejected connection", error);
+        const winner = await contract.winner();
+        setWinner(winner);
       }
+    } catch (error) {
+      console.error("Error loading contract data:", error);
     }
   };
 
-  // Fonction pour participer à la loterie
   const participateLottery = async () => {
-    if (!connectedAccount) {
-      alert("Veuillez vous connecter d'abord avec MetaMask");
+    if (!contract || !ticketPrice) {
+      alert("Contract not initialized or ticketPrice unavailable.");
       return;
     }
 
-    setIsParticipating(true);
-    setError("");
-
     try {
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
       const tx = await contract.participate({
-        value: ethers.parseEther("0.0001"), // Envoie 0.01 ETH pour participer
+        value: ethers.parseUnits(ticketPrice, "ether"),
       });
-
-      await tx.wait(); // Attends que la transaction soit minée
-      console.log("Participation réussie !");
-
-      alert("Vous avez participé à la loterie avec succès !");
+      await tx.wait();
+      alert("Participation successful!");
+      await loadContractData();
     } catch (error) {
-      console.error("Erreur lors de la participation", error);
-      setError("Erreur lors de la participation à la loterie");
-    } finally {
-      setIsParticipating(false);
+      console.error("Error during participation:", error);
+      alert(`Error during participation: ${error.message}`);
     }
   };
 
-  return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
-      <h1>Bienvenue sur notre application de loterie décentralisée</h1>
-      <p>
-        Cette application a été créée pour aider notre association à générer des revenus en organisant
-        une loterie décentralisée. En achetant des billets, vous contribuez directement au financement
-        des activités de l'association. Une partie des recettes est allouée aux projets associatifs,
-        tandis que la transparence totale est assurée grâce à la technologie blockchain.
-      </p>
-      <p>
-        Pour participer à la loterie, il vous suffit de vous connecter à MetaMask et d'acheter un ticket
-        au prix de 0.0001 ETH. Le tirage se fera automatiquement après chaque participation.
-      </p>
+  useEffect(() => {
+    loadContractData();
+  }, [contract]);
 
-      {connectedAccount ? (
-        <div>
-          <p>Votre compte MetaMask connecté: {connectedAccount}</p>
-          <button onClick={participateLottery} disabled={isParticipating}>
-            {isParticipating ? "Participation en cours..." : "Participer à la loterie"}
-          </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
+  return (
+    <div className="container mt-5">
+      <div className="card shadow-lg">
+        <div className="card-body">
+          <h1 className="card-title text-center text-primary mb-4">
+            Welcome to our decentralized lottery application
+          </h1>
+          <p className="card-text">
+            This application was created to help our association generate revenue by organizing a
+            decentralized lottery. By purchasing tickets, you directly contribute to funding the
+            association's activities. Part of the proceeds are allocated to association projects, while
+            total transparency is ensured through blockchain technology.
+          </p>
+          <p>
+            To participate in the lottery, connect to MetaMask and buy a ticket for{" "}
+            <strong>0.0001 ETH</strong>. The draw is made automatically after each participation.
+          </p>
+          {connectedAccount ? (
+            <div>
+              <p>
+                <strong>Your connected MetaMask account:</strong> {connectedAccount}
+              </p>
+              <p>
+                <strong>Ticket price:</strong> 0.001 ETH
+              </p>
+              <p>
+                <strong>Contract balance:</strong> {balance || "Loading..."} ETH
+              </p>
+              <p>
+                <strong>Participants ({participants.length}):</strong>
+              </p>
+              <ul className="list-group">
+                {participants.map((participant, index) => (
+                  <li key={index} className="list-group-item">
+                    {participant}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3">
+                <strong>Current winner:</strong> {winner || "None at the moment"}
+              </p>
+              <button className="btn btn-primary mt-3" onClick={participateLottery}>
+                Participate in the lottery
+              </button>
+            </div>
+          ) : (
+            <p style={{ color: 'red' }}>
+              Please connect to MetaMask to participate in the lottery.
+            </p>
+          )}
         </div>
-      ) : (
-        <div>
-          <button onClick={connect}>Connectez-vous avec MetaMask</button>
-        </div>
-      )}
+      </div>
     </div>
   );
-}
+};
 
 export default Home;

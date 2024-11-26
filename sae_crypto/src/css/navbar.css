@@ -1,55 +1,45 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #333;
-    color: #fff;
-    padding: 1rem;
-  }
-  
-  .navbar-left .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
-    text-decoration: none;
-  }
-  
-  .navbar-center .nav-links {
-    list-style-type: none;
-    display: flex;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .navbar-center .nav-links li {
-    margin-right: 1rem;
-  }
-  
-  .navbar-center .nav-links a {
-    color: #fff;
-    text-decoration: none;
-  }
-  
-  .navbar-right {
-    display: flex;
-    align-items: center;
-  }
-  
-  .navbar-right .cart-icon,
-  .navbar-right .user-icon {
-    color: #fff;
-    text-decoration: none;
-    margin-left: 1rem;
-    position: relative;
-  }
-  
-  .navbar-right .cart-count {
-    background-color: #f44336;
-    color: #fff;
-    border-radius: 50%;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.8rem;
-    position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
-  }
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff !important;
+}
+
+.nav-link {
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+  color: #00d1b2 !important;
+}
+
+.btn-outline-success {
+  border: 2px solid #00d1b2;
+  color: #00d1b2;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-outline-success:hover {
+  background-color: #00d1b2;
+  color: #fff;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.collapse {
+  justify-content: space-between;
+}
