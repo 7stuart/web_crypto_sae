@@ -78,7 +78,7 @@ function Home({ setConnectedAccount }) {
 
   return (
   <body>
-  <h1>Bienvenue sur notre application de loterie décentralisée</h1>
+    <h1>Bienvenue sur notre application de loterie décentralisée</h1>
       <p>
         Cette application a été créée pour aider notre association à générer des revenus en organisant
         une loterie décentralisée. En achetant des billets, vous contribuez directement au financement
@@ -89,24 +89,21 @@ function Home({ setConnectedAccount }) {
         Pour participer à la loterie, il vous suffit de vous connecter à MetaMask et d'acheter un ticket
         au prix de 0.0001 ETH. Le tirage se fera automatiquement après chaque participation.
       </p>
-    <div>
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
-
-      {connectedAccount ? (
-        <div>
-          <p>Votre compte MetaMask connecté: {connectedAccount}</p>
-          <button onClick={participateLottery} disabled={isParticipating}>
-            {isParticipating ? "Participation en cours..." : "Participer à la loterie"}
-          </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </div>
-      ) : (
-        <div>
-          <button onClick={connect}>Connectez-vous avec MetaMask</button>
-        </div>
-        </body>
-      )}
-    </div>
+      <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+        {connectedAccount ? (
+          <div>
+            <button onClick={participateLottery} disabled={isParticipating}>
+              {isParticipating ? "Participation en cours..." : "Participer à la loterie"}
+            </button>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+          </div>
+        ) : (
+          <div>
+            <p>Connectez vous à MetaMask pour participer</p>
+          </div>
+        )}
+      </div>
+    </body>
   );
 }
 
