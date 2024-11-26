@@ -90,10 +90,6 @@ function Home({ setConnectedAccount }) {
         au prix de 0.0001 ETH. Le tirage se fera automatiquement après chaque participation.
       </p>
     <div>
-        <button onClick={connect}>Connect to MetaMask</button>
-        <br/>
-          <p>Connected account: {connectedAccount}</p>
-          <button onClick={disconnect}>Disconnect from MetaMask</button>
     <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
 
       {connectedAccount ? (
