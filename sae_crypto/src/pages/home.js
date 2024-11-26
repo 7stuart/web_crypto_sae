@@ -103,12 +103,10 @@ function Home({ setConnectedAccount }) {
           </div>
         )}
       </div>
-    </body>
+          <div>
             <button onClick={connect}>Connectez-vous avec MetaMask</button>
           </div>
-        )}
-      </div>
-    </>
+    </body>
   );
 }
 
