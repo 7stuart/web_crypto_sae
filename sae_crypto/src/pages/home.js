@@ -138,7 +138,6 @@ const Home = () => {
           <div>
             <button onClick={connect}>Connectez-vous avec MetaMask</button>
           </div>
-    </body>
     <div className="container mt-5">
       <div className="card shadow-lg">
         <div className="card-body">
@@ -190,6 +189,7 @@ const Home = () => {
         </div>
       </div>
     </div>
+    </body>
   );
 };
 
