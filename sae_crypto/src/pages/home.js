@@ -43,7 +43,6 @@ function Home({ redirection }) {
         <br/>
           <p>Connected account: {connectedAccount}</p>
           <button onClick={disconnect}>Disconnect from MetaMask</button>
-        </>
     </div>
   );
 }
