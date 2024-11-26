@@ -1,0 +1,15 @@
+.card {
+    border: none;
+    border-radius: 12px;
+  }
+  
+  .card-body {
+    padding: 2rem;
+  }
+  
+  .list-group-item {
+    font-size: 0.9rem;
+    color: #555;
+    border: none;
+  }
+  
