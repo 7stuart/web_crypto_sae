@@ -142,32 +142,33 @@ const Home = () => {
       <div className="card shadow-lg">
         <div className="card-body">
           <h1 className="card-title text-center text-primary mb-4">
-            Bienvenue sur notre application de loterie décentralisée
+            Welcome to our decentralized lottery application
           </h1>
           <p className="card-text">
-            Cette application a été créée pour aider notre association à générer des revenus en
-            organisant une loterie décentralisée. En achetant des billets, vous contribuez directement
-            au financement des activités de l'association. Une partie des recettes est allouée aux
-            projets associatifs, tandis que la transparence totale est assurée grâce à la technologie
-            blockchain.
+            This application was created to help our association generate revenue by
+            organizing a decentralized lottery. By purchasing tickets, you directly
+            contribute to funding the association's activities. Part of the proceeds
+            is allocated to association projects, while complete transparency is
+            ensured thanks to blockchain technology.
           </p>
           <p>
-            Pour participer à la loterie, connectez-vous à MetaMask et achetez un ticket au prix de{" "}
-            <strong>0.0001 ETH</strong>. Le tirage se fait automatiquement après chaque participation.
+            To participate in the lottery, connect to MetaMask and purchase a ticket for{" "}
+            <strong>0.0001 ETH</strong>. The draw is done automatically after each
+            participation.
           </p>
           {account ? (
             <div className="mt-4">
               <p>
-                <strong>Votre compte MetaMask connecté :</strong> {account}
+                <strong>Your connected MetaMask account:</strong> {account}
               </p>
               <p>
-                <strong>Prix du ticket :</strong> {ticketPrice || "Chargement..."} ETH
+                <strong>Ticket price:</strong> {ticketPrice || "Loading..."} ETH
               </p>
               <p>
-                <strong>Solde du contrat :</strong> {balance || "Chargement..."} ETH
+                <strong>Contract balance:</strong> {balance || "Loading..."} ETH
               </p>
               <p>
-                <strong>Participants ({participants.length}) :</strong>
+                <strong>Participants ({participants.length}):</strong>
               </p>
               <ul className="list-group">
                 {participants.map((participant, index) => (
@@ -177,14 +178,14 @@ const Home = () => {
                 ))}
               </ul>
               <p className="mt-3">
-                <strong>Gagnant actuel :</strong> {winner || "Aucun pour le moment"}
+                <strong>Current winner:</strong> {winner || "None yet"}
               </p>
               <button className="btn btn-primary mt-3" onClick={participateLottery}>
-                Participer à la loterie
+                Participate in the lottery
               </button>
             </div>
           ) : (
-            <p>Connectez vous pour particper à la loterie</p>
+            <p>Connect to participate in the lottery</p>
           )}
         </div>
       </div>
