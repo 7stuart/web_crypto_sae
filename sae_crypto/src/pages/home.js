@@ -110,38 +110,7 @@ const Home = () => {
   }, []);
 
   return (
-<<<<<<< HEAD
-=======
-  <body>
-    <h1>Bienvenue sur notre application de loterie décentralisée</h1>
-      <p>
-        Cette application a été créée pour aider notre association à générer des revenus en organisant
-        une loterie décentralisée. En achetant des billets, vous contribuez directement au financement
-        des activités de l'association. Une partie des recettes est allouée aux projets associatifs,
-        tandis que la transparence totale est assurée grâce à la technologie blockchain.
-      </p>
-      <p>
-        Pour participer à la loterie, il vous suffit de vous connecter à MetaMask et d'acheter un ticket
-        au prix de 0.0001 ETH. Le tirage se fera automatiquement après chaque participation.
-      </p>
-      <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
-        {connectedAccount ? (
-          <div>
-            <button onClick={participateLottery} disabled={isParticipating}>
-              {isParticipating ? "Participation en cours..." : "Participer à la loterie"}
-            </button>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-          </div>
-        ) : (
-          <div>
-            <p>Connectez vous à MetaMask pour participer</p>
-          </div>
-        )}
-      </div>
-          <div>
-            <button onClick={connectWallet}>Connectez-vous avec MetaMask</button>
-          </div>
->>>>>>> cee92c03dde706e1ccf80b232451479ca1fa4fdd
+
     <div className="container mt-5">
       <div className="card shadow-lg">
         <div className="card-body">
