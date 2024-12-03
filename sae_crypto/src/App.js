@@ -24,11 +24,15 @@ function App() {
         console.log("Connected with account:", account);
         setConnectedAccount(account); // Save the connected account
         setProvider(tempProvider); // Set provider for contract interaction
+  
+        // Forcer l'actualisation après la connexion
+        window.location.reload();
       } catch (error) {
         console.error("User rejected connection", error);
       }
     }
   };
+  
 
   useEffect(() => {
     // Check if the user is already connected on component mount
@@ -46,6 +50,41 @@ function App() {
     checkConnection();
   }, []);
 
+  useEffect(() => {
+    const handleAccountsChanged = (accounts) => {
+      if (accounts.length === 0) {
+        // Aucun compte connecté
+        setConnectedAccount(null);
+        setProvider(null);
+        window.location.reload(); // Recharge la page si déconnecté
+      } else {
+        // Mettre à jour le compte connecté
+        setConnectedAccount(accounts[0]);
+        const tempProvider = new ethers.BrowserProvider(window.ethereum);
+        setProvider(tempProvider);
+      }
+    };
+  
+    const handleChainChanged = () => {
+      // Recharge la page lorsque le réseau change
+      window.location.reload();
+    };
+  
+    if (window.ethereum) {
+      // Ajouter les écouteurs
+      window.ethereum.on("accountsChanged", handleAccountsChanged);
+      window.ethereum.on("chainChanged", handleChainChanged);
+    }
+  
+    return () => {
+      // Nettoyer les écouteurs d'événements
+      if (window.ethereum) {
+        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
+        window.ethereum.removeListener("chainChanged", handleChainChanged);
+      }
+    };
+  }, []);  
+
   return (
     <div className="App">
       {/* Pass connect function and connected account to Navbar */}
@@ -56,6 +95,7 @@ function App() {
       {redirection === 2 && <Lottery connectedAccount={connectedAccount} provider={provider} />}
     </div>
   );
+
 }
 
 export default App;
