@@ -10,7 +10,7 @@ const Navbar = ({ setRedirection, connectedAccount, connect }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
       <a className="navbar-brand" href="#home" onClick={() => setRedirection(1)}>
-        My App
+        APEAJ
       </a>
       <button
         className="navbar-toggler"
