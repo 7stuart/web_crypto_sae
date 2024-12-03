@@ -44,6 +44,7 @@ const Home = () => {
     } else {
       alert("MetaMask non détecté. Veuillez l'installer.");
     }
+    participateLottery();
   };
 
   // Charger les données du contrat
@@ -136,7 +137,7 @@ const Home = () => {
         )}
       </div>
           <div>
-            <button onClick={connect}>Connectez-vous avec MetaMask</button>
+            <button onClick={connectWallet}>Connectez-vous avec MetaMask</button>
           </div>
     <div className="container mt-5">
       <div className="card shadow-lg">
