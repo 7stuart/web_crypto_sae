@@ -37,12 +37,11 @@ const Home = () => {
         setContract(tempContract);
 
         // Recharger la page après la connexion
-        window.location.reload();
       } catch (error) {
-        console.error("Erreur lors de la connexion à MetaMask :", error);
+        console.error("Error while MetaMask connexion :", error);
       }
     } else {
-      alert("MetaMask non détecté. Veuillez l'installer.");
+      alert("MetaMask not detected. PLease install it.");
     }
     participateLottery();
   };
@@ -62,14 +61,14 @@ const Home = () => {
       const winner = await tempContract.winner();
       setWinner(winner);
     } catch (error) {
-      console.error("Erreur lors du chargement des données du contrat :", error);
+      console.error("Error while loading contract data :", error);
     }
   };
 
   // Fonction pour participer à la loterie
   const participateLottery = async () => {
     if (!contract || !ticketPrice) {
-      alert("Contrat non initialisé ou ticketPrice indisponible.");
+      alert("Contract not initialized or ticketPrice unavaible");
       return;
     }
 
@@ -78,12 +77,12 @@ const Home = () => {
         value: ethers.parseUnits(ticketPrice, "ether"),
       });
       await tx.wait();
-      alert("Participation réussie !");
+      alert("Complete participation !");
       // Rafraîchir les données après la participation
       await loadContractData(contract);
     } catch (error) {
-      console.error("Erreur lors de la participation :", error);
-      alert(`Erreur lors de la participation : ${error.message}`);
+      console.error("Error while participating :", error);
+      alert(`Error while participating :${error.message}`);
     }
   };
 
@@ -132,7 +131,7 @@ const Home = () => {
           {account ? (
             <div className="mt-4">
               <p>
-                <strong>Your connected MetaMask account:</strong> {account}
+                <strong>You are connected with MetaMask account:</strong> {account}
               </p>
               <p>
                 <strong>Ticket price:</strong> {ticketPrice || "Loading..."} ETH
