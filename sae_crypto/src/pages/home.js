@@ -2,16 +2,16 @@ import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// ABI et adresse du contrat
 const contractABI = [
-  "function participate() external payable",
+  "function participate(string name) external payable",
   "function getParticipants() external view returns (address[])",
+  "function getParticipantName(address participant) external view returns (string)",
   "function drawWinner() external",
   "function getBalance() external view returns (uint256)",
   "function ticketPrice() view returns (uint256)",
   "function winner() view returns (address)",
 ];
-const contractAddress = "0x8D45Dd70309B0D23E4fC1cB31ED2ee78Fbc2ef6f";
+const contractAddress = "0x1801d06891EeA95754995af26E8F7Be43F897838";
 
 const Home = () => {
   const [account, setAccount] = useState(null);
@@ -20,9 +20,10 @@ const Home = () => {
   const [ticketPrice, setTicketPrice] = useState(null);
   const [balance, setBalance] = useState("0");
   const [participants, setParticipants] = useState([]);
+  const [participantNames, setParticipantNames] = useState({});
   const [winner, setWinner] = useState(null);
+  const [userName, setUserName] = useState("");
 
-  // Fonction pour se connecter à MetaMask
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
@@ -35,18 +36,15 @@ const Home = () => {
 
         const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
         setContract(tempContract);
-
-        // Recharger la page après la connexion
+        await loadContractData(tempContract);
       } catch (error) {
-        console.error("Error while MetaMask connexion :", error);
+        console.error("Error while connecting to MetaMask:", error);
       }
     } else {
-      alert("MetaMask not detected. PLease install it.");
+      alert("MetaMask not detected. Please install it.");
     }
-    participateLottery();
   };
 
-  // Charger les données du contrat
   const loadContractData = async (tempContract) => {
     try {
       const price = await tempContract.ticketPrice();
@@ -55,52 +53,63 @@ const Home = () => {
       const balance = await tempContract.getBalance();
       setBalance(ethers.formatUnits(balance, "ether"));
 
-      const participants = await tempContract.getParticipants();
-      setParticipants(participants);
+      const participantAddresses = await tempContract.getParticipants();
+      setParticipants(participantAddresses);
 
-      const winner = await tempContract.winner();
-      setWinner(winner);
+      // Load participant names
+      const names = {};
+      for (const address of participantAddresses) {
+        const name = await tempContract.getParticipantName(address);
+        names[address] = name;
+      }
+      setParticipantNames(names);
+
+      const winnerAddress = await tempContract.winner();
+      setWinner(winnerAddress);
+
+      // Set winner name if available
+      if (winnerAddress && names[winnerAddress]) {
+        setWinner(names[winnerAddress]);
+      } else {
+        setWinner("No winner yet");
+      }
     } catch (error) {
-      console.error("Error while loading contract data :", error);
+      console.error("Error while loading contract data:", error);
     }
   };
 
-  // Fonction pour participer à la loterie
   const participateLottery = async () => {
-    if (!contract || !ticketPrice) {
-      alert("Contract not initialized or ticketPrice unavaible");
+    if (!contract || !ticketPrice || !userName) {
+      alert("Please enter your name and ensure the contract is initialized.");
       return;
     }
 
     try {
-      const tx = await contract.participate({
+      const tx = await contract.participate(userName, {
         value: ethers.parseUnits(ticketPrice, "ether"),
       });
       await tx.wait();
-      alert("Complete participation !");
-      // Rafraîchir les données après la participation
+      alert("Participation successful!");
       await loadContractData(contract);
     } catch (error) {
-      console.error("Error while participating :", error);
-      alert(`Error while participating :${error.message}`);
+      console.error("Error while participating:", error);
+      alert(`Error: ${error.message}`);
     }
   };
 
-  // Vérifier si un compte est déjà connecté au moment du montage du composant
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
       const checkConnection = async () => {
         const accounts = await window.ethereum.request({ method: "eth_accounts" });
         if (accounts.length > 0) {
           setAccount(accounts[0]);
+
           const tempProvider = new ethers.BrowserProvider(window.ethereum);
           const signer = await tempProvider.getSigner();
           setProvider(tempProvider);
 
           const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
           setContract(tempContract);
-
-          // Charger les données du contrat après la connexion
           await loadContractData(tempContract);
         }
       };
@@ -109,7 +118,6 @@ const Home = () => {
   }, []);
 
   return (
-
     <div className="container mt-5">
       <div className="card shadow-lg">
         <div className="card-body">
@@ -128,11 +136,20 @@ const Home = () => {
             <strong>0.0001 ETH</strong>. The draw is done automatically after each
             participation.
           </p>
+          <div className="mb-3">
+            <label htmlFor="userName" className="form-label">
+              Enter your name:
+            </label>
+            <input
+              type="text"
+              id="userName"
+              className="form-control"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+            />
+          </div>
           {account ? (
-            <div className="mt-4">
-              <p>
-                <strong>You are connected with MetaMask account:</strong> {account}
-              </p>
+            <>
               <p>
                 <strong>Ticket price:</strong> {ticketPrice || "Loading..."} ETH
               </p>
@@ -145,19 +162,18 @@ const Home = () => {
               <ul className="list-group">
                 {participants.map((participant, index) => (
                   <li key={index} className="list-group-item">
-                    {participant}
+                    {participantNames[participant] || participant}
                   </li>
                 ))}
               </ul>
-              <p className="mt-3">
-                <strong>Current winner:</strong> {winner || "None yet"}
-              </p>
               <button className="btn btn-primary mt-3" onClick={participateLottery}>
                 Participate in the lottery
               </button>
-            </div>
+            </>
           ) : (
-            <p>Connect to participate in the lottery</p>
+            <button className="btn btn-primary" onClick={connectWallet}>
+              Connect to MetaMask
+            </button>
           )}
         </div>
       </div>

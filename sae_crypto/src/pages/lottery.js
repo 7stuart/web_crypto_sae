@@ -17,7 +17,7 @@ const Lottery = ({ connectedAccount }) => {
   const [error, setError] = useState("");
   const [metaMaskConnected, setMetaMaskConnected] = useState(true); // New state for MetaMask connection status
 
-  const contractAddress = "0x8D45Dd70309B0D23E4fC1cB31ED2ee78Fbc2ef6f";
+  const contractAddress = "0x1801d06891EeA95754995af26E8F7Be43F897838";
 
   useEffect(() => {
     const getOwnerAndParticipants = async () => {
