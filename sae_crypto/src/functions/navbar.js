@@ -1,5 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min'; // Import du JS de Bootstrap
 
 const Navbar = ({ setRedirection, connectedAccount, connect }) => {
   // Format Ethereum address for display (e.g., 0x1234...abcd)
