@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import Web3 from "web3";
-import { ethers } from "ethers";
 import "bootstrap/dist/css/bootstrap.min.css";
 import contractABI from "../LotteryABI.json";
 
@@ -15,9 +14,9 @@ const Lottery = ({ connectedAccount }) => {
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [metaMaskConnected, setMetaMaskConnected] = useState(true); // New state for MetaMask connection status
+  const [metaMaskConnected, setMetaMaskConnected] = useState(true);
 
-  const contractAddress = "0x1801d06891EeA95754995af26E8F7Be43F897838";
+  const contractAddress = "0x77500BC5e21f97D47686Fe0D96E72BF75de41130";
 
   useEffect(() => {
     const getOwnerAndParticipants = async () => {
@@ -27,10 +26,10 @@ const Lottery = ({ connectedAccount }) => {
         try {
           const accounts = await web3.eth.getAccounts();
           if (accounts.length === 0) {
-            setMetaMaskConnected(false); // Set to false if no account is found
+            setMetaMaskConnected(false);
             return;
           } else {
-            setMetaMaskConnected(true); // Set to true if an account is found
+            setMetaMaskConnected(true);
           }
 
           const contract = new web3.eth.Contract(contractABI, contractAddress);
@@ -40,8 +39,17 @@ const Lottery = ({ connectedAccount }) => {
           setIsOwner(accounts[0].toLowerCase() === contractOwner.toLowerCase());
 
           if (accounts[0].toLowerCase() === contractOwner.toLowerCase()) {
-            const participantsList = await contract.methods.getParticipants().call();
-            setParticipants(participantsList);
+            const participantAddresses = await contract.methods.getParticipants().call();
+
+            // Fetch participant names
+            const participantNames = await Promise.all(
+              participantAddresses.map(async (address) => {
+                const name = await contract.methods.participantNames(address).call();
+                return name || "Unknown";
+              })
+            );
+
+            setParticipants(participantNames);
 
             const balance = await web3.eth.getBalance(contractAddress);
             setContractBalance(web3.utils.fromWei(balance, "ether"));
@@ -51,7 +59,7 @@ const Lottery = ({ connectedAccount }) => {
           setError("Error retrieving contract data");
         }
       } else {
-        setMetaMaskConnected(false); // MetaMask is not installed
+        setMetaMaskConnected(false);
       }
     };
 
@@ -70,10 +78,18 @@ const Lottery = ({ connectedAccount }) => {
         await contract.methods.drawWinner().send({ from: owner });
 
         const winnerAddress = await contract.methods.winner().call();
-        setWinner(winnerAddress);
+        const winnerName = await contract.methods.participantNames(winnerAddress).call();
+        setWinner(winnerName || winnerAddress);
 
-        const participantsList = await contract.methods.getParticipants().call();
-        setParticipants(participantsList);
+        const participantAddresses = await contract.methods.getParticipants().call();
+        const participantNames = await Promise.all(
+          participantAddresses.map(async (address) => {
+            const name = await contract.methods.participantNames(address).call();
+            return name || "Unknown";
+          })
+        );
+
+        setParticipants(participantNames);
 
         const balance = await web3.eth.getBalance(contractAddress);
         setContractBalance(web3.utils.fromWei(balance, "ether"));
@@ -86,37 +102,26 @@ const Lottery = ({ connectedAccount }) => {
     }
   };
 
-  // Vérifier si un compte est déjà connecté au moment du montage du composant
   useEffect(() => {
     const checkConnection = async () => {
       if (typeof window.ethereum !== "undefined") {
         const accounts = await window.ethereum.request({ method: "eth_accounts" });
         if (accounts.length > 0) {
           setAccount(accounts[0]);
-          const tempProvider = new ethers.BrowserProvider(window.ethereum);
-          const signer = await tempProvider.getSigner();
-          setProvider(tempProvider);
-
-          const tempContract = new ethers.Contract(contractAddress, contractABI, signer);
-          setContract(tempContract);
-
-
         }
       }
     };
+
     checkConnection();
 
-    // Écouter les changements de compte ou de réseau dans MetaMask
     window.ethereum.on("accountsChanged", (accounts) => {
       setAccount(accounts[0] || null);
     });
 
     window.ethereum.on("chainChanged", () => {
-      // Vous pouvez recharger les données si nécessaire lorsque le réseau change
-      window.location.reload(); // Recharger la page si le réseau change
+      window.location.reload();
     });
 
-    // Nettoyer les écouteurs d'événements à la fin
     return () => {
       if (window.ethereum) {
         window.ethereum.removeListener("accountsChanged", () => {});
@@ -161,9 +166,9 @@ const Lottery = ({ connectedAccount }) => {
             {participants.length === 0 ? (
               <li className="list-group-item text-muted">No participants yet</li>
             ) : (
-              participants.map((participant, index) => (
+              participants.map((name, index) => (
                 <li key={index} className="list-group-item">
-                  {participant}
+                  {name}
                 </li>
               ))
             )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { useWinner } from '../functions/winnerContext';
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const contractABI = [
@@ -11,7 +12,8 @@ const contractABI = [
   "function ticketPrice() view returns (uint256)",
   "function winner() view returns (address)",
 ];
-const contractAddress = "0x1801d06891EeA95754995af26E8F7Be43F897838";
+
+const contractAddress = "0x77500BC5e21f97D47686Fe0D96E72BF75de41130";
 
 const Home = () => {
   const [account, setAccount] = useState(null);
@@ -21,8 +23,11 @@ const Home = () => {
   const [balance, setBalance] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantNames, setParticipantNames] = useState({});
-  const [winner, setWinner] = useState(null);
+  //const [winner, setWinner] = useState("");
   const [userName, setUserName] = useState("");
+  const [ownerShare, setOwnerShare] = useState("0");
+  const { winner } = useWinner(); // Utilisation du contexte
+  
 
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
@@ -48,31 +53,34 @@ const Home = () => {
   const loadContractData = async (tempContract) => {
     try {
       const price = await tempContract.ticketPrice();
+      console.log("Ticket price:", ethers.formatUnits(price, "ether"));
       setTicketPrice(ethers.formatUnits(price, "ether"));
-
+  
       const balance = await tempContract.getBalance();
+      console.log("Contract balance:", ethers.formatUnits(balance, "ether"));
       setBalance(ethers.formatUnits(balance, "ether"));
-
+  
       const participantAddresses = await tempContract.getParticipants();
+      console.log("Participants:", participantAddresses);
       setParticipants(participantAddresses);
-
-      // Load participant names
+  
       const names = {};
       for (const address of participantAddresses) {
         const name = await tempContract.getParticipantName(address);
         names[address] = name;
       }
       setParticipantNames(names);
-
+  
       const winnerAddress = await tempContract.winner();
-      setWinner(winnerAddress);
-
-      // Set winner name if available
-      if (winnerAddress && names[winnerAddress]) {
-        setWinner(names[winnerAddress]);
-      } else {
-        setWinner("No winner yet");
-      }
+      console.log("Winner address:", winnerAddress);
+  
+      //if (winnerAddress && winnerAddress !== ethers.ZeroAddress) {
+        //const winnerName = await tempContract.getParticipantName(winnerAddress);
+        //console.log("Winner name:", winnerName);
+        //setWinner(winnerName);
+      //} else {
+        //setWinner("No winner yet");
+      //}
     } catch (error) {
       console.error("Error while loading contract data:", error);
     }
@@ -96,7 +104,7 @@ const Home = () => {
       alert(`Error: ${error.message}`);
     }
   };
-
+  
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
       const checkConnection = async () => {
@@ -125,16 +133,7 @@ const Home = () => {
             Welcome to our decentralized lottery application
           </h1>
           <p className="card-text">
-            This application was created to help our association generate revenue by
-            organizing a decentralized lottery. By purchasing tickets, you directly
-            contribute to funding the association's activities. Part of the proceeds
-            is allocated to association projects, while complete transparency is
-            ensured thanks to blockchain technology.
-          </p>
-          <p>
-            To participate in the lottery, connect to MetaMask and purchase a ticket for{" "}
-            <strong>0.0001 ETH</strong>. The draw is done automatically after each
-            participation.
+            Participate in our decentralized lottery to support our association.
           </p>
           <div className="mb-3">
             <label htmlFor="userName" className="form-label">
@@ -157,15 +156,8 @@ const Home = () => {
                 <strong>Contract balance:</strong> {balance || "Loading..."} ETH
               </p>
               <p>
-                <strong>Participants ({participants.length}):</strong>
+                <strong>Last winner:</strong> {winner || "Loading..."}
               </p>
-              <ul className="list-group">
-                {participants.map((participant, index) => (
-                  <li key={index} className="list-group-item">
-                    {participantNames[participant] || participant}
-                  </li>
-                ))}
-              </ul>
               <button className="btn btn-primary mt-3" onClick={participateLottery}>
                 Participate in the lottery
               </button>
