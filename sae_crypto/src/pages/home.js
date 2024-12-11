@@ -51,28 +51,33 @@ const Home = () => {
     try {
       const price = await tempContract.ticketPrice();
       setTicketPrice(ethers.formatUnits(price, "ether"));
-  
+    
       const balance = await tempContract.getBalance();
       setBalance(ethers.formatUnits(balance, "ether"));
-  
+    
       const participantAddresses = await tempContract.getParticipants();
       setParticipants(participantAddresses);
-  
+    
       const names = {};
       for (const address of participantAddresses) {
         const name = await tempContract.getParticipantName(address);
         names[address] = name;
       }
       setParticipantNames(names);
-  
+    
       // Récupérer le nom du gagnant
       const winnerName = await tempContract.getWinnerName();
       setWinnerName(winnerName);
-  
+    
+      // Ajouter cette ligne pour le nombre de participants
+      const numberOfParticipants = participantAddresses.length;
+      console.log("Number of participants:", numberOfParticipants);
+    
     } catch (error) {
       console.error("Error while loading contract data:", error);
     }
   };
+  
   
 
   const participateLottery = async () => {
@@ -143,6 +148,9 @@ const Home = () => {
               </p>
               <p>
                 <strong>Contract balance:</strong> {balance || "Loading..."} ETH
+              </p>
+              <p>
+                <strong>Number of participants:</strong> {participants.length || "Loading..."}
               </p>
               <p>
                 <strong>Last winner:</strong> {winnerName || "No winner yet"}
