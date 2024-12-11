@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { useWinner } from '../functions/winnerContext';
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const contractABI = [
@@ -13,7 +12,7 @@ const contractABI = [
   "function winner() view returns (address)",
 ];
 
-const contractAddress = "0x77500BC5e21f97D47686Fe0D96E72BF75de41130";
+const contractAddress = "0x89794cB714e01712AA3fDbfc8dd9F6F9cA704c4f";
 
 const Home = () => {
   const [account, setAccount] = useState(null);
@@ -23,11 +22,9 @@ const Home = () => {
   const [balance, setBalance] = useState("0");
   const [participants, setParticipants] = useState([]);
   const [participantNames, setParticipantNames] = useState({});
-  //const [winner, setWinner] = useState("");
   const [userName, setUserName] = useState("");
-  const [ownerShare, setOwnerShare] = useState("0");
-  const { winner } = useWinner(); // Utilisation du contexte
-  
+  const [winnerName, setWinnerName] = useState("");
+
 
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
@@ -53,15 +50,12 @@ const Home = () => {
   const loadContractData = async (tempContract) => {
     try {
       const price = await tempContract.ticketPrice();
-      console.log("Ticket price:", ethers.formatUnits(price, "ether"));
       setTicketPrice(ethers.formatUnits(price, "ether"));
   
       const balance = await tempContract.getBalance();
-      console.log("Contract balance:", ethers.formatUnits(balance, "ether"));
       setBalance(ethers.formatUnits(balance, "ether"));
   
       const participantAddresses = await tempContract.getParticipants();
-      console.log("Participants:", participantAddresses);
       setParticipants(participantAddresses);
   
       const names = {};
@@ -71,20 +65,15 @@ const Home = () => {
       }
       setParticipantNames(names);
   
-      const winnerAddress = await tempContract.winner();
-      console.log("Winner address:", winnerAddress);
+      // Récupérer le nom du gagnant
+      const winnerName = await tempContract.getWinnerName();
+      setWinnerName(winnerName);
   
-      //if (winnerAddress && winnerAddress !== ethers.ZeroAddress) {
-        //const winnerName = await tempContract.getParticipantName(winnerAddress);
-        //console.log("Winner name:", winnerName);
-        //setWinner(winnerName);
-      //} else {
-        //setWinner("No winner yet");
-      //}
     } catch (error) {
       console.error("Error while loading contract data:", error);
     }
   };
+  
 
   const participateLottery = async () => {
     if (!contract || !ticketPrice || !userName) {
@@ -104,7 +93,7 @@ const Home = () => {
       alert(`Error: ${error.message}`);
     }
   };
-  
+
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
       const checkConnection = async () => {
@@ -156,7 +145,7 @@ const Home = () => {
                 <strong>Contract balance:</strong> {balance || "Loading..."} ETH
               </p>
               <p>
-                <strong>Last winner:</strong> {winner || "Loading..."}
+                <strong>Last winner:</strong> {winnerName || "No winner yet"}
               </p>
               <button className="btn btn-primary mt-3" onClick={participateLottery}>
                 Participate in the lottery

@@ -1,15 +1,22 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
-export const WinnerContext = createContext();
+// Création du contexte
+const WinnerContext = createContext();
 
+// Hook personnalisé pour utiliser le contexte
+export const useWinner = () => useContext(WinnerContext);
+
+// Fournisseur du contexte
 export const WinnerProvider = ({ children }) => {
-  const [winner, setWinner] = useState("");
+  const [winnerName, setWinnerName] = useState(null); // État du gagnant
+
+  const updateWinner = (newWinnerName) => {
+    setWinnerName(newWinnerName); // Mettre à jour le gagnant
+  };
 
   return (
-    <WinnerContext.Provider value={{ winner, setWinner }}>
+    <WinnerContext.Provider value={{ winnerName, updateWinner }}>
       {children}
     </WinnerContext.Provider>
   );
 };
-
-export const useWinner = () => useContext(WinnerContext);

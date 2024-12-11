@@ -11,12 +11,13 @@ const Lottery = ({ connectedAccount }) => {
   const [participants, setParticipants] = useState([]);
   const [winner, setWinner] = useState("");
   const [contractBalance, setContractBalance] = useState("0");
+  const [lastWinnerName, setLastWinnerName] = useState("");
   const [isOwner, setIsOwner] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [metaMaskConnected, setMetaMaskConnected] = useState(true);
 
-  const contractAddress = "0x77500BC5e21f97D47686Fe0D96E72BF75de41130";
+  const contractAddress = "0x89794cB714e01712AA3fDbfc8dd9F6F9cA704c4f";
 
   useEffect(() => {
     const getOwnerAndParticipants = async () => {
@@ -53,6 +54,9 @@ const Lottery = ({ connectedAccount }) => {
 
             const balance = await web3.eth.getBalance(contractAddress);
             setContractBalance(web3.utils.fromWei(balance, "ether"));
+
+            const winnerName = await contract.methods.winnerName().call();
+            setLastWinnerName(winnerName || "No winner yet");
           }
         } catch (error) {
           console.error("Error retrieving contract data", error);
@@ -93,6 +97,9 @@ const Lottery = ({ connectedAccount }) => {
 
         const balance = await web3.eth.getBalance(contractAddress);
         setContractBalance(web3.utils.fromWei(balance, "ether"));
+
+        const lastWinnerName = await contract.methods.winnerName().call();
+        setLastWinnerName(lastWinnerName || "No winner yet");
       } catch (error) {
         console.error("Error during drawing", error);
         setError("Error drawing the winner");
@@ -160,6 +167,9 @@ const Lottery = ({ connectedAccount }) => {
           </p>
           <p>
             <strong>Number of Participants:</strong> {participants.length}
+          </p>
+          <p>
+            <strong>Last Winner:</strong> {lastWinnerName}
           </p>
           <h5>Participants:</h5>
           <ul className="list-group mb-4">
