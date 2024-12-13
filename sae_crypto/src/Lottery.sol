@@ -5,8 +5,9 @@ contract Lottery {
     address public owner; // Adresse du propriétaire du contrat
     address[] public participants; // Liste des participants
     address public winner; // Adresse du gagnant
-    uint256 public ticketPrice = 10000000000000000 wei; // Prix par ticket
+    uint256 public ticketPrice = 0.02 ether; // Prix par ticket
     mapping(address => string) public participantNames; // Mapping de l'adresse au nom
+    string public winnerName;
 
     // Modificateur pour restreindre l'accès au propriétaire
     modifier onlyOwner() {
@@ -24,7 +25,7 @@ contract Lottery {
         require(msg.value == ticketPrice, "Incorrect ticket price");
         require(bytes(name).length > 0, "Name cannot be empty");
 
-        // On verifie si l'adresse à deja participer
+        // On vérifie si l'adresse a déjà participé
         for (uint256 i = 0; i < participants.length; i++) {
             require(participants[i] != msg.sender, "You have already participated");
         }
@@ -46,16 +47,29 @@ contract Lottery {
         ) % participants.length;
 
         winner = participants[randomIndex];
+        winnerName = participantNames[winner]; // Enregistrer le nom du gagnant
 
-        // Transférer tous les fonds au gagnant
-        payable(winner).transfer(address(this).balance);
+        // Calculer la part du propriétaire (25%) et du gagnant (75%)
+        uint256 contractBalance = address(this).balance;
+        uint256 ownerShare = (contractBalance * 25) / 100;
+        uint256 winnerShare = contractBalance - ownerShare;
+
+        // Transférer les parts
+        payable(owner).transfer(ownerShare);
+        payable(winner).transfer(winnerShare);
 
         // Réinitialiser les participants pour le prochain tour
         delete participants;
     }
 
+
     // Fonction pour vérifier le solde du contrat
     function getBalance() external view returns (uint256) {
         return address(this).balance;
     }
+
+    function getWinnerName() external view returns (string memory) {
+        return winnerName;
+    }
+
 }
